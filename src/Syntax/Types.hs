@@ -348,7 +348,8 @@ compactBottomTypeVars partials = joinUnionType $ mapMaybe aux $ splitUnionType p
 compactType :: ClassMap -> Type -> Type
 compactType _ TopType = TopType
 compactType _ t@TypeVar{} = t
-compactType classMap (UnionType partials) = UnionType $ (compactOverlapping classMap . compactJoinPartials classMap . compactBottomTypeVars) partials
+--compactType classMap (UnionType partials) = UnionType $ (compactOverlapping classMap . compactJoinPartials classMap . compactBottomTypeVars) partials
+compactType classMap (UnionType partials) = UnionType $ (compactBottomTypeVars . compactOverlapping classMap . compactJoinPartials classMap . compactBottomTypeVars) partials
 
 -- | Takes the union of two types (∪)
 unionTypes :: ClassMap -> Type -> Type -> Type

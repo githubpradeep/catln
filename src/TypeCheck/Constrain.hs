@@ -36,7 +36,7 @@ isSolved _                                 = False
 setScheme :: FEnv -> VarMeta -> Scheme -> String -> FEnv
 setScheme env p scheme msg = setDescriptor env p (checkScheme scheme) msg
   where msg' = printf "Scheme failed check at setScheme %s(point %s): upper bound is bottomType - " msg (show p)
-        -- checkScheme (TypeCheckResult _ (SType ub _ desc)) | isBottomType ub = error $ msg' ++ desc
+        checkScheme (TypeCheckResult _ (SType ub _ desc)) | isBottomType ub = error $ msg' ++ desc
         checkScheme (TypeCheckResult notes (SType ub _ desc)) | isBottomType ub = TypeCheckResE (GenTypeCheckError (getMetaPos p) (msg' ++ desc) : notes)
         checkScheme s = s
 
@@ -209,6 +209,7 @@ executeConstraint env (PropEq (superPnt, propName) subPnt) = do
     TypeCheckResE _ -> (True, env)
     (TypeCheckResult _ _) ->
       case sequenceT (superScheme, subScheme) of
+        --TypeCheckResult _ (superSType, subSType) | trace (printf "%s %s " (show superSType) (show subSType)) False -> undefined
         TypeCheckResult _ (superSType, subSType) -> do
           let (env2, superScheme', subScheme') = updateSchemeProp env (superPnt, superSType) propName (subPnt, subSType)
           let env3 = setScheme env2 superPnt superScheme' (printf "PropEq super (%s)" propName)
@@ -237,6 +238,7 @@ executeConstraint env (AddArg (srcPnt, newArgName) destPnt) = do
     TypeCheckResult _ (SType TopType _ _, _) -> (False, env)
     TypeCheckResult notes (SType srcUb _ _, SType destUb destLb destDesc) ->
       case addArgToType env srcUb newArgName of
+        --Just destUb' | trace (printf "--------------- %s ||||||||||||||||||| %s" (show destUb) (show destUb')) False -> undefined
         Just destUb' ->
           case tryIntersectTypes env destUb' destUb checkName of
             TypeCheckResult notes2 destUb'' -> do

@@ -55,13 +55,13 @@ addUnionObjToEnv env1@FEnv{feClassMap} vobjMap tobjMap = do
   let tobjs = concatMap (getRecursiveObjs . fst) tobjMap
 
   -- Finds the best precedence for all each object name
-  let buildPrecedenceMap = fmap (minimum . map objectPrecedence) . H.fromListWith (++) . map (\obj@Object{objName} -> (objName, [obj]))
+  let buildPrecedenceMap = fmap (minimum . map objectPrecedence) . H.fromListWith (++) . map (\obj@Object{objPath} -> (objPath, [obj]))
   let vPrecedenceMap = buildPrecedenceMap vobjs
   let tPrecedenceMap = buildPrecedenceMap tobjs
   let precedenceMap = H.unionWith min vPrecedenceMap tPrecedenceMap
 
   -- Filter the objects to only those with the best precedence
-  let filterBestPrecedence = filter (\obj@Object{objName} -> objectPrecedence obj == H.lookupDefault (error "Could not find obj in union") objName precedenceMap)
+  let filterBestPrecedence = filter (\obj@Object{objPath} -> objectPrecedence obj == H.lookupDefault (error "Could not find obj in union") objPath precedenceMap)
   let vobjs' = filterBestPrecedence vobjs
   let tobjs' = filterBestPrecedence tobjs
 
